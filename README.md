@@ -4,6 +4,25 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Available Scripts
 
+## Firebase Auth setup (required)
+
+This app uses Firebase Auth in the client. You must provide your Firebase **Web app** config.
+
+1) In Firebase Console, open your project → **Project settings** → **Your apps** → create/select a **Web app**
+2) Copy the config values (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId)
+3) Create a file at `client/.env` (you can start from `client/.env.example`) and set:
+
+- `REACT_APP_FIREBASE_API_KEY`
+- `REACT_APP_FIREBASE_AUTH_DOMAIN`
+- `REACT_APP_FIREBASE_PROJECT_ID`
+- `REACT_APP_FIREBASE_STORAGE_BUCKET`
+- `REACT_APP_FIREBASE_MESSAGING_SENDER_ID`
+- `REACT_APP_FIREBASE_APP_ID`
+
+4) Restart the dev server (`npm start`) after changing `.env`
+
+If you see `auth/invalid-api-key`, it usually means the values are missing or from the wrong Firebase project.
+
 In the project directory, you can run:
 
 ### `npm start`

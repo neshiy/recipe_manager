@@ -11,6 +11,8 @@ export default function RecipeDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isTogglingSave, setIsTogglingSave] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -19,9 +21,11 @@ export default function RecipeDetail() {
       try {
         setIsLoading(true);
         setError("");
-        const res = await API.get(`/recipes/${id}`);
+        const [res, meRes] = await Promise.all([API.get(`/recipes/${id}`), API.get("/me")]);
         if (!isMounted) return;
         setRecipe(res.data || null);
+        const savedList = Array.isArray(meRes.data?.savedRecipes) ? meRes.data.savedRecipes : [];
+        setIsSaved(savedList.some((x) => String(x) === String(id)));
       } catch (e) {
         if (!isMounted) return;
         setError("Failed to load recipe.");
@@ -63,6 +67,20 @@ export default function RecipeDetail() {
     }
   }
 
+  async function onToggleSave() {
+    if (!id) return;
+    try {
+      setIsTogglingSave(true);
+      setError("");
+      const res = await API.post(`/me/saved/${id}/toggle`);
+      setIsSaved(Boolean(res.data?.saved));
+    } catch (e) {
+      setError("Failed to update saved recipes.");
+    } finally {
+      setIsTogglingSave(false);
+    }
+  }
+
   if (isLoading) {
     return <div className={styles.card}>Loading…</div>;
   }
@@ -85,12 +103,23 @@ export default function RecipeDetail() {
             {typeof recipe.cookingTime === "number" ? (
               <span className={styles.badge}>{recipe.cookingTime} min</span>
             ) : null}
+            {typeof recipe.calories === "number" ? (
+              <span className={styles.badge}>{recipe.calories} cal</span>
+            ) : null}
             {typeof recipe.rating === "number" ? (
               <span className={styles.badge}>Rating: {recipe.rating}</span>
             ) : null}
           </div>
         </div>
         <div className={styles.actions}>
+          <button
+            className={styles.buttonSecondary}
+            type="button"
+            onClick={onToggleSave}
+            disabled={isTogglingSave}
+          >
+            {isTogglingSave ? "Working…" : isSaved ? "Unsave" : "Save"}
+          </button>
           <Link className={styles.buttonSecondary} to={`/edit/${recipe._id}`}>
             Edit
           </Link>
@@ -108,6 +137,15 @@ export default function RecipeDetail() {
       {recipe.imageUrl ? (
         <div className={styles.card}>
           <img className={styles.heroImage} src={recipe.imageUrl} alt={recipe.name || "Recipe"} />
+        </div>
+      ) : null}
+
+      {recipe.description ? (
+        <div className={styles.card}>
+          <h2 className={styles.h2}>Description</h2>
+          <div className={`${styles.muted} ${styles.recipeDescription}`}>
+            {recipe.description}
+          </div>
         </div>
       ) : null}
 

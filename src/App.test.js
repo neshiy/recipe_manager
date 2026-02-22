@@ -1,8 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders recipes heading', () => {
+test('renders Explore recipes section', () => {
   render(<App />);
-  const heading = screen.getByText(/recipes/i);
-  expect(heading).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /explore recipes/i })).toBeInTheDocument();
 });

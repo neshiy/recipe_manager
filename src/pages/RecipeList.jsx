@@ -1,12 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { API } from "../api";
 import styles from "../styles/ui.module.css";
+
+function normalize(value) {
+  return String(value || "").trim().toLowerCase();
+}
 
 export default function RecipeList() {
   const [recipes, setRecipes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchText, setSearchText] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = normalize(searchText);
+    if (!q) return recipes;
+    return (Array.isArray(recipes) ? recipes : []).filter((r) => {
+      return (
+        normalize(r.name).includes(q) ||
+        normalize(r.cuisineType).includes(q) ||
+        (Array.isArray(r.ingredients) ? r.ingredients.some((i) => normalize(i).includes(q)) : false)
+      );
+    });
+  }, [recipes, searchText]);
 
   useEffect(() => {
     let isMounted = true;
@@ -47,15 +64,26 @@ export default function RecipeList() {
         </div>
       </div>
 
+      <div className={styles.field}>
+        <label className={styles.label}>Search</label>
+        <input
+          className={styles.input}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          placeholder="Search recipes"
+          aria-label="Search recipes"
+        />
+      </div>
+
       {isLoading ? <div className={styles.card}>Loading…</div> : null}
       {error ? <div className={`${styles.card} ${styles.errorCard}`}>{error}</div> : null}
 
-      {!isLoading && !error && recipes.length === 0 ? (
+      {!isLoading && !error && filtered.length === 0 ? (
         <div className={styles.card}>No recipes yet. Create your first one.</div>
       ) : null}
 
       <div className={styles.grid}>
-        {recipes.map((r) => (
+        {filtered.map((r) => (
           <div key={r._id} className={styles.card}>
             <div className={styles.cardHeaderRow}>
               <h2 className={styles.h2}>
